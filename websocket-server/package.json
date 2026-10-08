@@ -1,0 +1,13 @@
+{
+  "name": "nodex-realtime-server",
+  "version": "1.0.0",
+  "description": "NodeX Studio Micro-Reverb Realtime WebSocket Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ioredis": "^5.4.0",
+    "ws": "^8.18.0"
+  }
+}

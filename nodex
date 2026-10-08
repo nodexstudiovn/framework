@@ -1,0 +1,49 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Design by: NodeX Studio
+ * Telegram: @nodexstudio
+ * CLI Command Executable
+ */
+
+use NodeX\Application;
+use NodeX\Console\Kernel;
+
+define('NODEX_START', microtime(true));
+
+$basePath = __DIR__;
+
+if (file_exists($basePath . '/vendor/autoload.php')) {
+    require_once $basePath . '/vendor/autoload.php';
+} else {
+    spl_autoload_register(static function (string $class) use ($basePath): void {
+        $prefixes = [
+            'NodeX\\' => $basePath . '/src/',
+            'App\\'   => $basePath . '/app/'
+        ];
+
+        foreach ($prefixes as $prefix => $baseDir) {
+            $len = strlen($prefix);
+            if (strncmp($prefix, $class, $len) !== 0) {
+                continue;
+            }
+
+            $relativeClass = substr($class, $len);
+            $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
+
+            if (file_exists($file)) {
+                require_once $file;
+                return;
+            }
+        }
+    });
+}
+
+$app = new Application($basePath);
+$kernel = new Kernel($app);
+
+$status = $kernel->handle($argv);
+exit($status);
