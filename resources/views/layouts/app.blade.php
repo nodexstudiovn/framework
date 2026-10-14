@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
     @csrf_meta
-    <title>@yield('title', 'NodeX Studio — High Performance PHP Framework')</title>
+    <title>@yield('title', 'NodeX Studio — Framework PHP Hiện Đại Hiệu Năng Cao')</title>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
