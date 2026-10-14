@@ -1,5 +1,7 @@
-import { initChatModule } from './modules/chat.js';
+/**
+ * Design by: NodeX Studio
+ * Telegram: @nodexstudio
+ * NodeX Studio Framework v1.1.0 — Frontend Entrypoint
+ */
 
-document.addEventListener('DOMContentLoaded', () => {
-    initChatModule();
-});
+console.log('⚡ NodeX Studio Framework v1.1.0 — Assets Pipeline Initialized');
