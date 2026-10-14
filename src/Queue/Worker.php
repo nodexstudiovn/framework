@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Design by: NodeX Studio
  * Telegram: @nodexstudio
- * CLI Queue Worker Executor
+ * CLI Queue Worker Executor with Graceful Shutdown & Exponential Backoff
  */
 
 namespace NodeX\Queue;
@@ -17,10 +17,55 @@ use Throwable;
 class Worker
 {
     private RedisClient $redis;
+    private bool $shouldQuit = false;
+    private bool $isProcessing = false;
 
     public function __construct(?RedisClient $redis = null)
     {
         $this->redis = $redis ?? new RedisClient();
+        $this->listenForSignals();
+    }
+
+    /**
+     * Đăng ký bộ lắng nghe tín hiệu tắt hệ thống (Graceful Shutdown)
+     */
+    private function listenForSignals(): void
+    {
+        // 1. Hệ thống Linux / Unix thông qua PCNTL
+        if (extension_loaded('pcntl') && function_exists('pcntl_async_signals')) {
+            pcntl_async_signals(true);
+            pcntl_signal(SIGINT, [$this, 'handleShutdownSignal']);
+            pcntl_signal(SIGTERM, [$this, 'handleShutdownSignal']);
+            pcntl_signal(SIGHUP, [$this, 'handleShutdownSignal']);
+        }
+
+        // 2. Hệ điều hành Windows (Ctrl+C / Ctrl+Break Event)
+        if (function_exists('sapi_windows_set_ctrl_handler')) {
+            sapi_windows_set_ctrl_handler(function (int $event): bool {
+                if ($event === PHP_WINDOWS_EVENT_CTRL_C || $event === PHP_WINDOWS_EVENT_CTRL_BREAK) {
+                    $this->handleShutdownSignal();
+                    return true;
+                }
+                return false;
+            });
+        }
+    }
+
+    public function handleShutdownSignal(): void
+    {
+        if ($this->shouldQuit) {
+            echo "\n\033[31m[FORCED STOP] Ngắt Worker ngay lập tức.\033[0m\n";
+            exit(1);
+        }
+
+        $this->shouldQuit = true;
+
+        if ($this->isProcessing) {
+            echo "\n\033[33m⏳ [GRACEFUL SHUTDOWN] Đang chờ Job hiện tại hoàn tất trước khi dừng an toàn...\033[0m\n";
+        } else {
+            echo "\n\033[32m✔ [SHUTDOWN] Đã dừng Queue Worker an toàn.\033[0m\n";
+            exit(0);
+        }
     }
 
     /**
@@ -45,10 +90,11 @@ class Worker
             echo "\033[32m📂 Driver: [FILE QUEUE] (Giám sát thư mục: storage/queue/{$queue}/)\033[0m\n";
             echo "Press Ctrl+C to exit.\n\n";
 
-            while (true) {
+            while (!$this->shouldQuit) {
                 $this->processFileFallback($queue, $maxRetries);
                 sleep($sleep);
             }
+            return;
         }
 
         // 3. Chế độ Redis hoặc Auto
@@ -66,7 +112,7 @@ class Worker
 
         $lastRedisCheck = time();
 
-        while (true) {
+        while (!$this->shouldQuit) {
             if ($isRedisOnline) {
                 try {
                     // Thử lấy từ Redis queue via BRPOP (blocking 3s)
@@ -102,10 +148,14 @@ class Worker
                 }
             }
         }
+
+        if ($this->shouldQuit) {
+            echo "\033[32m✔ [GRACEFUL SHUTDOWN] Đã kết thúc tiến trình Queue Worker an toàn.\033[0m\n";
+        }
     }
 
     /**
-     * Xử lý thực thi nội dung của Job
+     * Xử lý thực thi nội dung của Job với Exponential Backoff & Graceful Protection
      */
     public function processJob(string $payloadStr, int $maxRetries = 3, string $queue = 'default'): void
     {
@@ -120,6 +170,8 @@ class Worker
         $attempts = ($data['attempts'] ?? 0) + 1;
 
         echo "\033[33mProcessing Job:\033[0m {$jobClass} (Lần thử {$attempts}/{$maxRetries})...\n";
+
+        $this->isProcessing = true;
 
         try {
             $jobInstance = unserialize($data['serialized']);
@@ -137,13 +189,24 @@ class Worker
             echo "\033[31m✘ [FAILED] Job {$jobClass} thất bại: {$e->getMessage()}\033[0m\n";
 
             if ($attempts < $maxRetries) {
-                // Đẩy lại vào queue thử lại một cách an toàn qua QueueManager
+                // Tính toán Exponential Backoff + Jitter ngẫu nhiên (tránh thundering herd)
+                $backoffSeconds = min((int)pow(2, $attempts) + random_int(1, 2), 60);
+
                 $data['attempts'] = $attempts;
                 $newPayload = (string)json_encode($data, JSON_UNESCAPED_UNICODE);
+
+                echo "\033[33m↳ [RETRY BACKOFF] Chờ {$backoffSeconds}s trước khi lên lịch thử lại lần {$attempts}/{$maxRetries} cho {$jobClass}...\033[0m\n";
+                sleep($backoffSeconds);
+
                 QueueManager::pushPayload($newPayload, $queue);
-                echo "\033[33m↳ Đã lên lịch thử lại lần {$attempts}/{$maxRetries} cho {$jobClass}.\033[0m\n";
             } else {
                 $this->logFailedJob($jobClass, $payloadStr, $e);
+            }
+        } finally {
+            $this->isProcessing = false;
+            if ($this->shouldQuit) {
+                echo "\033[32m✔ [GRACEFUL SHUTDOWN] Job hoàn tất. Đã dừng Queue Worker an toàn.\033[0m\n";
+                exit(0);
             }
         }
     }

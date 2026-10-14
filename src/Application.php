@@ -22,7 +22,7 @@ use Throwable;
 class Application
 {
     public const string NAME = 'NodeX Studio';
-    public const string VERSION = '1.1.0';
+    public const string VERSION = '1.2.0';
 
     public private(set) string $basePath;
     public private(set) Router $router;
@@ -34,6 +34,9 @@ class Application
     public function __construct(string $basePath)
     {
         $this->basePath = rtrim($basePath, '/\\');
+        if (!defined('NODEX_BASE_PATH')) {
+            define('NODEX_BASE_PATH', $this->basePath);
+        }
         self::$instance = $this;
         $this->bootstrap();
     }

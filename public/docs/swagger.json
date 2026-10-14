@@ -1,0 +1,47 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "NodeX Studio RESTful API Documentation",
+        "description": "Tài liệu API tự động phân tích và sinh ra bởi NodeX Studio Framework v1.2.0",
+        "version": "1.2.0",
+        "contact": {
+            "name": "NodeX Studio Engineering Team",
+            "url": "https://github.com/nodexstudiovn/framework"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://127.0.0.1:8000",
+            "description": "Local Development Server"
+        }
+    ],
+    "paths": {
+        "/api/v1/info": {
+            "get": {
+                "summary": "Endpoint: Closure",
+                "description": "Được điều phối và xử lý bởi Closure",
+                "responses": {
+                    "200": {
+                        "description": "Phản hồi thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

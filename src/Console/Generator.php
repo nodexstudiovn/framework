@@ -230,4 +230,91 @@ PHP;
         file_put_contents($filePath, $template);
         echo "\033[32m✔ Created Rule:\033[0m app/Rules/{$name}.php\n";
     }
+
+    public function makeJob(string $name): void
+    {
+        $dir = $this->basePath . '/app/Jobs';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $name = str_replace('Job', '', $name) . 'Job';
+        $filePath = "{$dir}/{$name}.php";
+
+        if (file_exists($filePath)) {
+            echo "\033[31m✘ Job [{$name}] already exists.\033[0m\n";
+            return;
+        }
+
+        $template = <<<PHP
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Design by: NodeX Studio
+ * Telegram: @nodexstudio
+ * Queue Job: {$name}
+ */
+
+namespace App\Jobs;
+
+use NodeX\Queue\ShouldQueue;
+
+class {$name} implements ShouldQueue
+{
+    /**
+     * Tận dụng PHP 8.4 Constructor Property Promotion
+     */
+    public function __construct(
+        public readonly string \$payload = ''
+    ) {}
+
+    /**
+     * Xử lý tác vụ ngầm khi Worker lấy job ra khỏi hàng đợi
+     */
+    public function handle(): void
+    {
+        // Thực thi nghiệp vụ ngầm tại đây (Gửi email, xuất PDF, đồng bộ API...)
+    }
+}
+PHP;
+
+        file_put_contents($filePath, $template);
+        echo "\033[32m✔ Created Job:\033[0m app/Jobs/{$name}.php\n";
+    }
+
+    public function makeTest(string $name): void
+    {
+        $dir = $this->basePath . '/tests/Feature';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $name = str_replace('Test', '', $name) . 'Test';
+        $filePath = "{$dir}/{$name}.php";
+
+        if (file_exists($filePath)) {
+            echo "\033[31m✘ Test [{$name}] already exists.\033[0m\n";
+            return;
+        }
+
+        $template = <<<PHP
+<?php
+
+declare(strict_types=1);
+
+/**
+ * NodeX Studio - Feature Test Case
+ * Test: {$name}
+ */
+
+test('{$name} executes successfully', function () {
+    expect(true)->toBeTrue();
+});
+PHP;
+
+        file_put_contents($filePath, $template);
+        echo "\033[32m✔ Created Test Case:\033[0m tests/Feature/{$name}.php\n";
+    }
 }

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodeX Studio - Swagger API Docs</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg" />
+    <style>
+        body { margin: 0; background: #0f172a; font-family: sans-serif; }
+        .swagger-ui .topbar { display: none; }
+        .swagger-ui { background: #fff; padding: 24px; border-radius: 12px; margin: 30px auto; max-width: 1200px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); }
+    </style>
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js"></script>
+    <script>
+        window.onload = () => {
+            window.ui = SwaggerUIBundle({
+                url: '/docs/swagger.json',
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIBundle.SwaggerUIStandalonePreset
+                ]
+            });
+        };
+    </script>
+</body>
+</html>
