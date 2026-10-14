@@ -28,6 +28,45 @@ class RedisClient
     }
 
     /**
+     * Kiểm tra nhanh trạng thái máy chủ Redis có đang sẵn sàng hay không
+     */
+    public function isAvailable(float $timeout = 0.3): bool
+    {
+        $address = sprintf('tcp://%s:%d', $this->host, $this->port);
+        $errno = 0;
+        $errstr = '';
+
+        $socket = @stream_socket_client(
+            $address,
+            $errno,
+            $errstr,
+            $timeout,
+            STREAM_CLIENT_CONNECT
+        );
+
+        if (!$socket) {
+            return false;
+        }
+
+        @fclose($socket);
+        return true;
+    }
+
+    /**
+     * Gửi lệnh PING kiểm tra phản hồi từ Redis
+     */
+    public function ping(): bool
+    {
+        try {
+            $res = $this->execute(['PING']);
+            return $res === 'PONG';
+        } catch (Throwable) {
+            $this->socket = null;
+            return false;
+        }
+    }
+
+    /**
      * Kết nối Socket tới Redis Server
      */
     private function connect(): mixed

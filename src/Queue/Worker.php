@@ -29,25 +29,77 @@ class Worker
     public function daemon(string $queue = 'default', int $sleep = 2, int $maxRetries = 3): void
     {
         $queueKey = "nodex_queue:{$queue}";
+        $driver = QueueManager::getDriver();
+
         echo "\033[36m⚡ NodeX Studio Queue Worker started listening on queue [{$queue}]...\033[0m\n";
-        echo "Press Ctrl+C to exit.\n\n";
 
-        while (true) {
-            try {
-                // Thử lấy từ Redis queue via BRPOP (blocking 3s)
-                $pop = $this->redis->brpop($queueKey, 3);
+        // 1. Chế độ đồng bộ
+        if ($driver === 'sync') {
+            echo "\033[33mℹ Chế độ QUEUE_CONNECTION=sync đang được bật. Mọi Job sẽ được thực thi đồng bộ ngay khi push mà không cần worker chạy ngầm.\033[0m\n";
+            echo "Press Ctrl+C to exit.\n";
+            return;
+        }
 
-                if ($pop !== null && !empty($pop['payload'])) {
-                    $this->processJob($pop['payload'], $maxRetries);
-                } else {
-                    // Kiểm tra xem có file fallback nào trong storage/queue không
-                    $this->processFileFallback($queue, $maxRetries);
-                }
-            } catch (Throwable $e) {
-                echo "\033[31m[ERROR] Redis connection issue: {$e->getMessage()}\033[0m\n";
-                // Xử lý fallback file nếu Redis mất kết nối
+        // 2. Chế độ File Driver thuần túy
+        if ($driver === 'file') {
+            echo "\033[32m📂 Driver: [FILE QUEUE] (Giám sát thư mục: storage/queue/{$queue}/)\033[0m\n";
+            echo "Press Ctrl+C to exit.\n\n";
+
+            while (true) {
                 $this->processFileFallback($queue, $maxRetries);
                 sleep($sleep);
+            }
+        }
+
+        // 3. Chế độ Redis hoặc Auto
+        $isRedisOnline = $this->redis->isAvailable(0.5);
+
+        if ($isRedisOnline) {
+            echo "\033[32m🟢 Kết nối Redis Server (127.0.0.1:6379) thành công. Driver: [REDIS]\033[0m\n";
+        } else {
+            echo "\033[33m🟡 [THÔNG BÁO] Không thể kết nối Redis Server tại tcp://127.0.0.1:6379 (Chưa khởi chạy redis-server).\033[0m\n";
+            echo "\033[32m🔄 Worker tự động kích hoạt [FILE QUEUE DRIVER] (lưu trữ và xử lý tại storage/queue/{$queue}/).\033[0m\n";
+            echo "\033[90m💡 Mẹo: Khởi chạy redis-server để đạt hiệu năng cao nhất, hoặc đặt QUEUE_CONNECTION=file trong file .env\033[0m\n";
+        }
+
+        echo "Press Ctrl+C to exit.\n\n";
+
+        $lastRedisCheck = time();
+
+        while (true) {
+            if ($isRedisOnline) {
+                try {
+                    // Thử lấy từ Redis queue via BRPOP (blocking 3s)
+                    $pop = $this->redis->brpop($queueKey, 3);
+
+                    if ($pop !== null && !empty($pop['payload'])) {
+                        $this->processJob($pop['payload'], $maxRetries, $queue);
+                    } else {
+                        // Kiểm tra xem có file fallback tồn đọng nào không
+                        $this->processFileFallback($queue, $maxRetries);
+                    }
+                } catch (Throwable $e) {
+                    $isRedisOnline = false;
+                    $lastRedisCheck = time();
+                    echo "\033[31m[CẢNH BÁO] Mất kết nối Redis Server: {$e->getMessage()}\033[0m\n";
+                    echo "\033[33m🔄 Tạm thời chuyển sang chế độ File Queue Driver...\033[0m\n";
+                    $this->processFileFallback($queue, $maxRetries);
+                    sleep($sleep);
+                }
+            } else {
+                // Đang trong chế độ File Driver khi Redis offline
+                $this->processFileFallback($queue, $maxRetries);
+                sleep($sleep);
+
+                // Định kỳ mỗi 30 giây kiểm tra xem Redis đã hoạt động lại hay chưa
+                $now = time();
+                if ($now - $lastRedisCheck >= 30) {
+                    $lastRedisCheck = $now;
+                    if ($this->redis->isAvailable(0.3)) {
+                        $isRedisOnline = true;
+                        echo "\n\033[32m🟢 [KẾT NỐI LẠI] Phát hiện Redis Server đã hoạt động trở lại! Tự động chuyển về [REDIS DRIVER].\033[0m\n\n";
+                    }
+                }
             }
         }
     }
@@ -55,7 +107,7 @@ class Worker
     /**
      * Xử lý thực thi nội dung của Job
      */
-    public function processJob(string $payloadStr, int $maxRetries = 3): void
+    public function processJob(string $payloadStr, int $maxRetries = 3, string $queue = 'default'): void
     {
         $data = json_decode($payloadStr, true);
 
@@ -85,9 +137,11 @@ class Worker
             echo "\033[31m✘ [FAILED] Job {$jobClass} thất bại: {$e->getMessage()}\033[0m\n";
 
             if ($attempts < $maxRetries) {
-                // Đẩy lại vào queue thử lại
+                // Đẩy lại vào queue thử lại một cách an toàn qua QueueManager
                 $data['attempts'] = $attempts;
-                $this->redis->lpush("nodex_queue:default", (string)json_encode($data));
+                $newPayload = (string)json_encode($data, JSON_UNESCAPED_UNICODE);
+                QueueManager::pushPayload($newPayload, $queue);
+                echo "\033[33m↳ Đã lên lịch thử lại lần {$attempts}/{$maxRetries} cho {$jobClass}.\033[0m\n";
             } else {
                 $this->logFailedJob($jobClass, $payloadStr, $e);
             }
@@ -95,27 +149,30 @@ class Worker
     }
 
     /**
-     * Xử lý quét các file job bị đẩy vào storage/queue/ khi Redis offline
+     * Xử lý quét các file job bị đẩy vào storage/queue/ khi Redis offline hoặc chế độ File
      */
-    private function processFileFallback(string $queue, int $maxRetries): void
+    private function processFileFallback(string $queue, int $maxRetries): bool
     {
         $dir = dirname(__DIR__, 2) . "/storage/queue/{$queue}";
         if (!is_dir($dir)) {
-            return;
+            return false;
         }
 
         $files = glob($dir . '/*.json');
         if (empty($files)) {
-            return;
+            return false;
         }
 
         $file = $files[0];
         $payload = file_get_contents($file);
         @unlink($file);
 
-        if ($payload !== false) {
-            $this->processJob($payload, $maxRetries);
+        if ($payload !== false && trim($payload) !== '') {
+            $this->processJob($payload, $maxRetries, $queue);
+            return true;
         }
+
+        return false;
     }
 
     /**

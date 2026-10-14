@@ -128,7 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 ## 3. HỆ THỐNG HÀNG ĐỢI NGẦM (QUEUE ENGINE & WORKER)
 
-Để các tác vụ nặng (như gửi email, tạo hóa đơn PDF, gọi API bên thứ ba) không làm chậm thời gian tải trang của người dùng, NodeX Framework cung cấp sẵn hệ thống Hàng đợi (Queue) dựa trên Redis kết hợp cơ chế lưu trữ dự phòng (File Fallback).
+Để các tác vụ nặng (như gửi email, tạo hóa đơn PDF, gọi API bên thứ ba) không làm chậm thời gian tải trang của người dùng, NodeX Framework cung cấp sẵn hệ thống Hàng đợi (Queue) đa driver thông minh: **Redis**, **File Queue** (hoạt động độc lập không cần cài Redis), **Sync** (thực thi ngay lập tức) và chế độ **Auto** (tự động phát hiện và chuyển đổi dự phòng mượt mà).
+
+Cấu hình driver trong file `.env`:
+```ini
+# Chế độ: auto (mặc định), redis, file, sync
+QUEUE_CONNECTION=auto
+```
 
 ### 3.1. Tạo Một Job Ngầm Mới
 Mỗi Job ngầm được đặt tại `app/Jobs/` và bắt buộc phải triển khai interface `NodeX\Queue\ShouldQueue`:
