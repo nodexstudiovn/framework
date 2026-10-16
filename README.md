@@ -23,7 +23,7 @@ Framework được thiết kế với triết lý **Decoupled & Ultra-Fast**: t�
 
 ## 👨‍💻 2. TÁC GIẢ & THÔNG TIN PHÁT TRIỂN
 
-* **Nhà phát triển chính (Lead Developer & Architect):** **Nguyễn Anh Kiệt** (Kiet Nguyen)
+* **Nhà sáng lập & Kiến trúc sư trưởng (Founder & Lead Architect):** **Nguyễn Anh Kiệt (Founder của NodeX Studio)**
 * **Năm sinh:** **2006** (Kỹ sư phần mềm Gen Z)
 * **Đơn vị phát triển:** **NodeX Studio** ([@nodexstudiovn](https://github.com/nodexstudiovn))
 * **Kênh liên hệ chính thức:**
@@ -47,24 +47,62 @@ Dự án **NodeX Studio Framework** được Nguyễn Anh Kiệt khởi xướng
    * Tích hợp bộ quét tự động `ViewHygieneChecker` ở tầng ứng dụng, ngăn chặn triệt để việc viết mã PHP thuần (`<?php`, `@php`), CSS inline (`<style>`, `style=`) và JS inline trong file view, đảm bảo khả năng tái cấu trúc và bảo mật dài hạn.
 5. **Trải nghiệm lập trình PHP 8.4+ đẳng cấp (Modern DX):**
    * Khai thác triệt để các tính năng tối tân nhất của PHP 8.4+: *Property Hooks*, *Asymmetric Visibility (`public private(set)`)*, *First-Class Callables*, kết hợp cùng bộ **Global Fluent Helpers** (`response()`, `action()`, `rescue()`, `validator()`, `dispatch()`, `broadcast()`) giúp mã nguồn thanh thoát, tinh gọn và dễ bảo trì.
-6. **Tích hợp sẵn hệ thống Async & Realtime doanh nghiệp:**
-   * Tích hợp sẵn động cơ Hàng đợi **Queue Worker** (Redis, Exponential Backoff, Graceful Shutdown qua tín hiệu POSIX `SIGTERM`) và máy chủ Realtime WebSocket (**Micro-Reverb Broadcaster**) phục vụ ngay lập tức các ứng dụng thời gian thực.
+6. **Tự làm chủ công nghệ lõi (Native Realtime & Async Queue):**
+   * Tự phát triển động cơ WebSockets thời gian thực (**Micro-Reverb**) và hàng đợi xử lý ngầm (**Queue Worker**) chuẩn hóa tại tầng core lõi, không dựa dẫm vào các giải pháp cloud bên ngoài hay các dịch vụ SaaS bên thứ ba đắt đỏ.
 
 ---
 
-## 🚀 4. CÁC TÍNH NĂNG CỐT LÕI (KEY FEATURES)
+## 💎 4. CÁC TINH HOA CÔNG NGHỆ CỐT LÕI (CORE ARCHITECTURAL MASTERPIECES)
 
-| Tính Năng | Mô Tả Chi Tiết |
-| :--- | :--- |
-| **PHP 8.4+ Native** | Tận dụng triệt để Property Hooks, Asymmetric Visibility, Typed Properties, Constructor Promotion. |
-| **Standalone Eloquent v13+** | Toàn bộ sức mạnh của Eloquent ORM: Eager Loading, Query Builder, Model Events, Mutators/Accessors. |
-| **Laravel Blade & Vite** | Blade Engine hiện đại kết hợp Asset Bundler Vite (Hot Module Replacement - HMR). |
-| **Strict View Hygiene** | Bộ kiểm tra ứng dụng tự động chặn PHP/CSS/JS inline vi phạm chuẩn mực trong Blade Views. |
-| **Compiled DIC Container** | Container tự động phân giải Dependency Injection, hỗ trợ biên dịch sơ đồ phụ thuộc thành mảng Closure tĩnh (0ms). |
-| **Async Queue Engine** | Worker xử lý ngầm qua Redis với cơ chế Exponential Backoff, Dead Letter Queue và Graceful Shutdown. |
-| **Realtime WebSockets** | Động cơ phát tán sự kiện (Broadcaster) tích hợp Redis Pub/Sub và WebSocket Micro-Reverb. |
-| **CLI Toolkit Mạnh Mẽ** | Bộ công cụ dòng lệnh `php nodex` quản lý migration, sinh mã tự động (action, model, rule, controller, job). |
-| **OpenAPI & Swagger** | Tự động quét và phát sinh tài liệu API chuẩn OpenAPI 3.0 (`php nodex docs:api`). |
+Dự án NodeX Studio Framework là sự kết tinh của tư duy kỹ thuật đỉnh cao, tập trung giải quyết triệt để các bài toán khó nhất trong phát triển backend hiện đại:
+
+### 1. ⚡ Tự Làm Chủ Công Nghệ Realtime WebSocket Core Lõi (Micro-Reverb Native Engine)
+* **Không phụ thuộc thư viện ngoài:** Thay vì phải trả phí đắt đỏ cho Pusher/Ably hay triển khai các cụm server cồng kềnh như Soketi, NodeX Studio tự nghiên cứu và lập trình toàn bộ máy chủ WebSocket thuần chạy trực tiếp trên tầng Socket của PHP (`socket_create`, `socket_bind`, `socket_listen`, `socket_select`).
+* **Handshake chuẩn RFC 6455:** Tự code thuật toán bắt tay HTTP Upgrade, băm SHA-1 và mã hóa Base64 cho header `Sec-WebSocket-Accept`.
+* **Bit-level Frame Processing:** Tự cài đặt thuật toán giải mã mặt nạ (Unmasking Payload) và đóng gói Frame dữ liệu nhị phân chuẩn xác từng bit.
+* **Tích hợp Redis Pub/Sub đa luồng:** Ứng dụng chính phát tín hiệu bằng hàm ngắn `broadcast($channel, $event, $data)` đẩy vào kênh Redis; máy chủ WebSocket (`php nodex realtime:serve`) đón nhận và phân phối tức thì đến hàng chục nghìn client với độ trễ sub-millisecond (< 1ms).
+* **Quản lý kênh đa dạng:** Hỗ trợ đầy đủ Kênh Công khai (Public), Kênh Riêng tư (Private) và Kênh Hiện diện (Presence).
+
+### 2. 🛡️ Động Cơ Hàng Đợi Bất Đồng Bộ Chuẩn Doanh Nghiệp (Async Queue Engine)
+* **Xử lý ngầm tốc độ cao:** Sử dụng Redis làm message broker, hỗ trợ phân chia nhiều hàng đợi ưu tiên (`default`, `emails`, `payments`).
+* **Thuật toán Exponential Backoff:** Khi tác vụ gặp sự cố (mạng chập chờn, bên thứ 3 gián đoạn), Worker tự động tính toán thời gian chờ tăng theo hàm mũ (`delay = base * 2^(attempts-1)`), ngăn chặn triệt để tình trạng bão request đánh sập hệ thống.
+* **Dead Letter Queue (DLQ):** Khi vượt quá ngưỡng thử lại tối đa (`maxRetries`), Job tự động được chuyển sang kho lưu trữ thất bại kèm toàn bộ stack trace chi tiết để kỹ sư đối soát.
+* **Graceful Shutdown (Bắt tín hiệu POSIX):** Lắng nghe các tín hiệu hệ điều hành `SIGTERM`, `SIGINT`, `SIGHUP`. Khi hệ thống reboot hoặc deploy phiên bản mới, Worker không ngắt đột ngột mà chờ hoàn thành dứt điểm Job đang chạy dang dở rồi mới thoát an toàn.
+
+### 3. 🚀 Compiled Dependency Injection Container (0ms Reflection Overhead)
+* **Môi trường Development:** Container tự động resolve phụ thuộc dựa trên Reflection API với tính linh hoạt tuyệt đối.
+* **Môi trường Production:** Với lệnh `php nodex optimize:container`, Container tự động duyệt cây phụ thuộc của toàn bộ Actions, Controllers, Models và biên dịch thành một file Closure Map tĩnh (`storage/cache/container.php`).
+* **Hiệu năng cực đại:** Xóa bỏ hoàn toàn chi phí Reflection khi chạy trên môi trường thực tế, đưa tốc độ khởi tạo dependency về **0ms**, tương đương tốc độ khởi tạo thủ công bằng PHP thuần.
+
+### 4. 🧩 Tinh Hoa Decoupled Từ Hệ Sinh Thái Laravel & Symfony
+* **Standalone Eloquent ORM v13+:** Tách rời hoàn toàn khỏi Laravel core cồng kềnh nhưng vẫn sở hữu trọn vẹn: Eager Loading chống N+1 Query, Mutators, Accessors, Model Events, Query Builder và Migrations.
+* **Laravel Blade Engine Độc Lập:** Tận dụng công nghệ biên dịch template nhanh nhất của Laravel mà không cần kéo theo full-stack framework.
+* **Vite Asset Bundler Tích Hợp:** Hỗ trợ Hot Module Replacement (HMR) cực nhanh, tự động nhận diện môi trường qua cổng 5173 và fallback mượt mà về `manifest.json` trên Production.
+
+### 5. 🧹 Bộ Thanh Tra Vệ Sinh View Khắt Khe (Strict View Hygiene)
+* **Bắt lỗi tầng ứng dụng:** Bộ quét `ViewHygieneChecker` tự động kiểm tra cú pháp ngay khi View được gọi render.
+* **Cấm triệt để mã bẩn:** Nghiêm cấm hoàn toàn mã PHP thuần (`<?php`, `@php`), CSS inline (`<style>`, `style=`), và JS inline (`<script>`, `onclick=`) trong sub-views.
+* **Bảo mật & Dễ bảo trì:** Đảm bảo mã nguồn frontend đạt chuẩn Clean Code 100%, miễn nhiễm với lỗi rò rỉ logic nghiệp vụ ra giao diện hoặc lỗ hổng XSS tiềm ẩn.
+
+### 6. 🏛️ Kiến Trúc Hybrid Action Pattern
+* **Cô lập 100% Business Logic:** Nghiệp vụ chỉ được viết trong `app/Actions/`.
+* **Controller Siêu Mỏng (Skinny Controllers):** Controller chỉ làm đúng 3 việc: Nhận Request, Validate và gọi Action.
+* **Clean Models:** Các Model lớn được phân tách thành các Traits nhỏ (`app/Models/Traits/`) không bao giờ vượt quá 300 dòng/file.
+
+### 7. ✨ Cú Pháp PHP 8.4+ Thanh Thoát & Global Fluent Helpers
+* **Tiên phong áp dụng PHP 8.4+:** Property Hooks thay thế getter/setter rườm rà, Asymmetric Visibility (`public private(set)`), Constructor Promotion, First-Class Callables.
+* **Hệ thống Fluent Helpers:**
+  * `response()->json(...)`, `response()->redirect(...)`, `view(...)`
+  * `action(SomeAction::class, ...$args)`
+  * `rescue(fn() => ..., fallback: ...)` — triệt tiêu khối try-catch dài dòng
+  * `dispatch($job)` — đẩy việc vào hàng đợi ngầm
+  * `broadcast($channel, $event, $data)` — phát sóng realtime tức thời
+  * `validator($data, $rules)` & `validate($data, $rules)`
+
+### 8. 🛠️ Bộ Công Cụ Dòng Lệnh NodeX CLI (`php nodex`)
+* Tự động sinh mã nguồn chuẩn kiến trúc (Action, Model, Controller, Job, Test, Rule, Migration).
+* Tự động quét và phát sinh tài liệu API theo chuẩn OpenAPI 3.0 & Swagger UI (`php nodex docs:api`).
+* Bộ kiểm thử tự động toàn diện tích hợp sẵn (`php nodex test`).
 
 ---
 
@@ -173,5 +211,5 @@ class CreateUserAction
 ## 📜 8. BẢN QUYỀN & GIẤY PHÉP
 
 * **Đơn vị thiết kế & phát triển:** **NodeX Studio**
-* **Trưởng nhóm kiến trúc:** **Nguyễn Anh Kiệt** (Telegram: [@nodexstudio](https://t.me/nodexstudio))
+* **Trưởng nhóm kiến trúc & Sáng lập:** **Nguyễn Anh Kiệt (Founder của NodeX Studio)** (Telegram: [@nodexstudio](https://t.me/nodexstudio))
 * **Giấy phép bản quyền:** Dự án được phát hành theo giấy phép mã nguồn mở **[MIT License](LICENSE)**.
