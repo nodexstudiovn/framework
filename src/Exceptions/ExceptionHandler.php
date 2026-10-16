@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace NodeX\Exceptions;
 
+use Illuminate\Validation\ValidationException;
 use NodeX\Application;
 use NodeX\Http\Request;
 use NodeX\Http\Response;
@@ -26,7 +27,7 @@ class ExceptionHandler
         $debug = filter_var($_ENV['APP_DEBUG'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
         // Xử lý riêng biệt lỗi ValidationException (HTTP 422)
-        if ($e instanceof \Illuminate\Validation\ValidationException) {
+        if ($e instanceof ValidationException) {
             if (self::isJsonRequest($request)) {
                 return Response::json([
                     'message' => 'Dữ liệu cung cấp không hợp lệ.',
@@ -118,9 +119,9 @@ class ExceptionHandler
         } catch (Throwable) {
             return Response::html(
                 '<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>500 — Server Error</title>' .
-                '<style>body{background:#090d16;color:#f1f5f9;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;}' .
-                'h1{font-size:3rem;margin:0;color:#f43f5e;}p{opacity:.8;}</style></head>' .
-                '<body><div><h1>500</h1><p>Máy chủ đang gặp sự cố gián đoạn. Vui lòng thử lại sau.</p></div></body></html>',
+                '<link rel="stylesheet" href="/assets/css/error.css">' .
+                '</head><body><div class="min-h-screen flex items-center justify-center text-center p-6">' .
+                '<div><h1 class="text-5xl font-bold text-rose-500">500</h1><p class="text-slate-400 mt-2">Máy chủ đang gặp sự cố gián đoạn. Vui lòng thử lại sau.</p></div></div></body></html>',
                 500
             );
         }

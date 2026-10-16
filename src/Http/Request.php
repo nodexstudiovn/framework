@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace NodeX\Http;
 
+use NodeX\Validation\Validator;
+
 class Request
 {
     public function __construct(
@@ -82,6 +84,6 @@ class Request
      */
     public function validate(array $rules, array $messages = [], array $customAttributes = []): array
     {
-        return \NodeX\Validation\Validator::validate($this->all(), $rules, $messages, $customAttributes);
+        return Validator::validate($this->all(), $rules, $messages, $customAttributes);
     }
 }

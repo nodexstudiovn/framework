@@ -12,6 +12,7 @@ namespace NodeX\Queue;
 
 use NodeX\Container\Container;
 use NodeX\Redis\RedisClient;
+use RuntimeException;
 use Throwable;
 
 class Worker
@@ -177,7 +178,7 @@ class Worker
             $jobInstance = unserialize($data['serialized']);
 
             if (!$jobInstance instanceof ShouldQueue) {
-                throw new \RuntimeException("Job class [{$jobClass}] không triển khai ShouldQueue interface.");
+                throw new RuntimeException("Job class [{$jobClass}] không triển khai ShouldQueue interface.");
             }
 
             // Gọi phương thức handle với tự động tiêm Dependency thông qua DIC Container

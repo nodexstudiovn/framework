@@ -10,8 +10,10 @@ declare(strict_types=1);
 
 namespace NodeX;
 
+use Illuminate\Pagination\Paginator;
 use NodeX\Container\Container;
 use NodeX\Database\Connection;
+use NodeX\Exceptions\ExceptionHandler;
 use NodeX\Http\Request;
 use NodeX\Http\Response;
 use NodeX\Http\Router;
@@ -67,12 +69,12 @@ class Application
         Connection::init($this->basePath);
 
         // Cấu hình Paginator Resolvers cho Eloquent ORM
-        \Illuminate\Pagination\Paginator::currentPageResolver(static function ($pageName = 'page'): int {
+        Paginator::currentPageResolver(static function ($pageName = 'page'): int {
             $page = $_GET[$pageName] ?? 1;
             return filter_var($page, FILTER_VALIDATE_INT) !== false && (int)$page >= 1 ? (int)$page : 1;
         });
 
-        \Illuminate\Pagination\Paginator::currentPathResolver(static function (): string {
+        Paginator::currentPathResolver(static function (): string {
             return strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';
         });
         
@@ -132,6 +134,6 @@ class Application
 
     private function handleException(Throwable $e): Response
     {
-        return \NodeX\Exceptions\ExceptionHandler::handle($e, $this->request ?? null);
+        return ExceptionHandler::handle($e, $this->request ?? null);
     }
 }

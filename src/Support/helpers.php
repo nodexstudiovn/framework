@@ -8,6 +8,7 @@ declare(strict_types=1);
  * Global Fluent Helper Functions for NodeX Studio Framework v1.2.0
  */
 
+use Illuminate\Validation\Validator as IlluminateValidator;
 use NodeX\Broadcasting\Broadcaster;
 use NodeX\Container\Container;
 use NodeX\Http\Response;
@@ -16,6 +17,7 @@ use NodeX\Queue\QueueManager;
 use NodeX\Queue\ShouldQueue;
 use NodeX\Security\CsrfToken;
 use NodeX\Support\Pipeline;
+use NodeX\Validation\Validator;
 use NodeX\View\Engine as ViewEngine;
 
 if (!function_exists('response')) {
@@ -189,9 +191,9 @@ if (!function_exists('validator')) {
      * Ví dụ:
      *   $v = validator($requestData, ['email' => 'required|email']);
      */
-    function validator(array $data = [], array $rules = [], array $messages = [], array $customAttributes = []): \Illuminate\Validation\Validator
+    function validator(array $data = [], array $rules = [], array $messages = [], array $customAttributes = []): IlluminateValidator
     {
-        return \NodeX\Validation\Validator::make($data, $rules, $messages, $customAttributes);
+        return Validator::make($data, $rules, $messages, $customAttributes);
     }
 }
 
@@ -203,6 +205,6 @@ if (!function_exists('validate')) {
      */
     function validate(array $data, array $rules, array $messages = [], array $customAttributes = []): array
     {
-        return \NodeX\Validation\Validator::validate($data, $rules, $messages, $customAttributes);
+        return Validator::validate($data, $rules, $messages, $customAttributes);
     }
 }

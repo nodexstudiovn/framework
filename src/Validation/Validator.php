@@ -16,6 +16,7 @@ use Illuminate\Translation\Translator;
 use Illuminate\Validation\DatabasePresenceVerifier;
 use Illuminate\Validation\Factory as ValidationFactory;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Validator as IlluminateValidator;
 use NodeX\Database\Connection;
 use Throwable;
 
@@ -104,7 +105,7 @@ class Validator
     /**
      * Khởi tạo đối tượng Validator
      */
-    public static function make(array $data, array $rules, array $messages = [], array $customAttributes = []): \Illuminate\Validation\Validator
+    public static function make(array $data, array $rules, array $messages = [], array $customAttributes = []): IlluminateValidator
     {
         return self::getFactory()->make($data, $rules, $messages, $customAttributes);
     }

@@ -1,37 +1,8 @@
-<!DOCTYPE html>
-<html lang="vi" class="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $shortClass }}: {{ $message }} — NodeX Studio</title>
-    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['"Fira Code"', 'monospace'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#eef2ff',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-[#090d16] text-slate-200 font-sans min-h-screen antialiased selection:bg-rose-500 selection:text-white pb-16">
+@extends('layouts.error')
 
+@section('title', $shortClass . ': ' . $message . ' — NodeX Studio')
+
+@section('content')
     <!-- Top Navigation Header -->
     <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50 px-6 py-3.5">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
@@ -46,7 +17,7 @@
             <div class="flex items-center gap-3 text-xs font-medium">
                 <span class="px-2.5 py-1 rounded-md bg-slate-800/80 text-slate-300 border border-slate-700/60 font-mono">PHP {{ $phpVersion }}</span>
                 <span class="px-2.5 py-1 rounded-md bg-slate-800/80 text-indigo-300 border border-slate-700/60 font-mono">v{{ $nodeXVersion }}</span>
-                <button id="copyErrorBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition-all font-mono active:scale-95">
+                <button id="copyErrorBtn" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition-all font-mono active:scale-95">
                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                     <span>Sao chép lỗi</span>
                 </button>
@@ -250,48 +221,7 @@
 
     </main>
 
-    <footer class="max-w-7xl mx-auto px-6 pt-10 text-center text-xs text-slate-600 font-mono">
+    <footer class="max-w-7xl mx-auto px-6 pt-10 pb-16 text-center text-xs text-slate-600 font-mono">
         <p>NodeX Studio Exception Inspector • Thiết kế bởi NodeX Studio Engineering Team</p>
     </footer>
-
-    <!-- Interactive Tabs & Clipboard Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Tab switching logic
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            tabButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const targetId = btn.getAttribute('data-tab');
-
-                    tabButtons.forEach(b => {
-                        b.classList.remove('text-white', 'border-indigo-500');
-                        b.classList.add('text-slate-400', 'border-transparent');
-                    });
-
-                    btn.classList.add('text-white', 'border-indigo-500');
-                    btn.classList.remove('text-slate-400', 'border-transparent');
-
-                    tabContents.forEach(c => c.classList.add('hidden'));
-                    document.getElementById(targetId)?.classList.remove('hidden');
-                });
-            });
-
-            // Copy error message logic
-            const copyBtn = document.getElementById('copyErrorBtn');
-            copyBtn?.addEventListener('click', () => {
-                const title = document.querySelector('h1')?.innerText || '';
-                const fileInfo = document.querySelector('span.text-rose-400')?.innerText || '';
-                const textToCopy = `${title}\nLocation: ${fileInfo}`;
-
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                    const originalText = copyBtn.innerHTML;
-                    copyBtn.innerHTML = '<span class="text-emerald-400 font-bold">✔ Đã sao chép!</span>';
-                    setTimeout(() => { copyBtn.innerHTML = originalText; }, 2000);
-                });
-            });
-        });
-    </script>
-</body>
-</html>
+@endsection

@@ -22,7 +22,7 @@ class ViewHygieneChecker
     {
         $lines = explode("\n", $rawContent);
         $normalizedPath = str_replace('\\', '/', $filePath);
-        $isLayout = str_contains($normalizedPath, 'layouts/') || str_contains($normalizedPath, 'errors/');
+        $isLayout = str_contains($normalizedPath, 'layouts/');
 
         foreach ($lines as $index => $line) {
             $lineNumber = $index + 1;

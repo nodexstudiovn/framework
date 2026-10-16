@@ -271,7 +271,7 @@ class Container
 
                 $constructor = $reflector->getConstructor();
                 if ($constructor === null || empty($constructor->getParameters())) {
-                    $compiledMap[$className] = "static fn(\NodeX\Container\Container \$c, array \$p = []) => new \\{$className}()";
+                    $compiledMap[$className] = "static fn(Container \$c, array \$p = []) => new \\{$className}()";
                     $count++;
                     continue;
                 }
@@ -294,7 +294,7 @@ class Container
 
                 if ($canCompile) {
                     $argsStr = implode(', ', $args);
-                    $compiledMap[$className] = "static fn(\NodeX\Container\Container \$c, array \$p = []) => new \\{$className}({$argsStr})";
+                    $compiledMap[$className] = "static fn(Container \$c, array \$p = []) => new \\{$className}({$argsStr})";
                     $count++;
                 }
             }
@@ -305,7 +305,7 @@ class Container
             mkdir($cacheDir, 0755, true);
         }
 
-        $code = "<?php\n\ndeclare(strict_types=1);\n\n/**\n * NodeX Studio - Compiled Container Optimization Map\n * Generated at: " . date('Y-m-d H:i:s') . "\n */\n\nreturn [\n";
+        $code = "<?php\n\ndeclare(strict_types=1);\n\n/**\n * NodeX Studio - Compiled Container Optimization Map\n * Generated at: " . date('Y-m-d H:i:s') . "\n */\n\nuse NodeX\Container\Container;\n\nreturn [\n";
         foreach ($compiledMap as $class => $factory) {
             $code .= "    '{$class}' => {$factory},\n";
         }
