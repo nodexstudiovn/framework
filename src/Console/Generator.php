@@ -83,15 +83,27 @@ declare(strict_types=1);
  * Design by: NodeX Studio
  * Telegram: @nodexstudio
  * Action: {$name}
+ *
+ * Cách gọi thực thi:
+ *   1. Chạy nhanh: {$name}::run(\$data);
+ *   2. Fluent Chain: {$name}::make()->execute(\$data);
+ *   3. Helper toàn cục: action({$name}::class, \$data);
  */
 
 namespace App\Actions;
 
 class {$name} extends Action
 {
+    /**
+     * Tận dụng PHP 8.4 Constructor Property Promotion & Asymmetric Visibility nếu cần tiêm phụ thuộc
+     * public function __construct(
+     *     public private(set) ?SomeService \$service = null
+     * ) {}
+     */
+
     public function execute(mixed ...\$args): mixed
     {
-        // Implement business logic here
+        // Viết nghiệp vụ tại đây (Sử dụng rescue() nếu muốn bọc lỗi gọn gàng)
         return true;
     }
 }
@@ -124,7 +136,7 @@ declare(strict_types=1);
 /**
  * Design by: NodeX Studio
  * Telegram: @nodexstudio
- * Model: {$name}
+ * Eloquent Model: {$name}
  */
 
 namespace App\Models;
@@ -134,6 +146,13 @@ class {$name} extends Model
     protected \$table = '{$table}';
 
     protected \$guarded = [];
+
+    /**
+     * Tận dụng Property Hooks (PHP 8.4+) thay thế getter/setter truyền thống:
+     * public string \$formatted_title {
+     *     get => ucfirst(\$this->title ?? '');
+     * }
+     */
 }
 PHP;
 

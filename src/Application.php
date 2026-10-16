@@ -52,6 +52,9 @@ class Application
     private function bootstrap(): void
     {
         $this->loadEnvironment();
+
+        // Nạp bộ Global Fluent Helpers
+        require_once __DIR__ . '/Support/helpers.php';
         
         // Khởi tạo Session mặc định cho CSRF & State management
         CsrfToken::initSession();

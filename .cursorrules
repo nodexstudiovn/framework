@@ -49,7 +49,25 @@
 
 ---
 
-## 5. NODEX CLI COMMANDS (`php nodex`)
+---
+
+## 5. CÚ PHÁP HIỆN ĐẠI & GLOBAL FLUENT HELPERS (PHP 8.4+ STANDARDS)
+* **Global Helpers (Sạch API Surface):**
+  * `response()->json(...)`, `response()->redirect(...)`, `view('name', compact(...))`
+  * `app()`, `config('KEY')`, `action(SomeAction::class, ...$args)`
+  * `rescue(fn() => ..., fallback: ...)`: Triệt tiêu try-catch rườm rà
+  * `pipeline()->send(...)->through([...])->then(...)`
+  * `dispatch($job)` & `broadcast($channel, $event, $data)`
+* **PHP 8.4+ Modern Standards:**
+  * **Property Hooks:** `public string $name { get => ucfirst($this->name); set => strtolower($value); }`
+  * **Asymmetric Visibility:** `public private(set) UserRepository $users;`
+  * **Constructor Property Promotion:** Khai báo trực tiếp thuộc tính trong `__construct`.
+  * **First-Class Callables & Short Closures:** `array_map($transformer->transform(...), $items)`, `fn($x) => ...`
+* **Fluent Actions:** Gọi trực tiếp `Action::run(...)` hoặc chain `Action::make()->execute(...)`.
+
+---
+
+## 6. NODEX CLI COMMANDS (`php nodex`)
 * `php nodex serve`: Khởi chạy Local Development Server.
 * `php nodex migrate`: Khởi chạy Database Migrations.
 * `php nodex migrate:rollback`: Rollback đợt migration gần nhất.
@@ -58,10 +76,15 @@
 * `php nodex make:migration <Name>`: Tạo Migration file mới trong `database/migrations/`.
 * `php nodex make:model <Name>`: Tạo Eloquent Model trong `app/Models/`.
 * `php nodex make:controller <Name>`: Tạo Controller trong `app/Controllers/`.
+* `php nodex make:job <Name>`: Tạo Queue Job ngầm trong `app/Jobs/`.
+* `php nodex make:test <Name>`: Tạo Feature Test trong `tests/Feature/`.
 * `php nodex make:rule <Name>`: Tạo Validation Rule trong `app/Rules/`.
-* `php nodex queue:work`: Khởi chạy tiến trình Hàng đợi Queue Worker.
+* `php nodex optimize:container`: Biên dịch sơ đồ phụ thuộc Container tĩnh (0ms Reflection).
+* `php nodex docs:api`: Tự động sinh tài liệu OpenAPI 3.0 & Swagger UI.
+* `php nodex queue:work`: Khởi chạy Queue Worker (Exponential Backoff & Graceful Shutdown).
 * `php nodex realtime:serve`: Khởi chạy máy chủ WebSockets Realtime (Micro-Reverb).
-* `php nodex cache:clear`: Xóa cache Views & Compiled templates.
+* `php nodex test`: Chạy kiểm thử tự động toàn diện.
+* `php nodex cache:clear`: Xóa cache Views & Compiled Container.
 * `php nodex route:list`: Liệt kê danh sách Routes.
 
 ---

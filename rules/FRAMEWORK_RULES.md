@@ -72,10 +72,87 @@ Trả về lỗi theo chuẩn JSON Doanh nghiệp của NodeX Studio:
 
 ---
 
-## 5. 💻 NODEX CLI COMMANDS (`php nodex`)
+---
+
+## 5. ✨ CÚ PHÁP HIỆN ĐẠI & GLOBAL FLUENT HELPERS (PHP 8.4+ STANDARDS)
+
+Nhằm giúp mã nguồn trong NodeX Framework đạt độ tinh gọn, thanh thoát (tương tự vẻ đẹp của Python, TypeScript hay Kotlin), toàn bộ dự án áp dụng 4 nguyên tắc kiến trúc cú pháp sau:
+
+### 5.1. Bộ Global Fluent Helpers
+Không bắt buộc phải gõ namespace dài hoặc khởi tạo instance thủ công. Luôn ưu tiên dùng các helper toàn cục:
+* **Response & View:**
+  ```php
+  return response()->json(['status' => 'success']);
+  return response()->redirect('/dashboard');
+  return view('user.profile', compact('user'));
+  ```
+* **Dependency & Config:**
+  ```php
+  $service = app(OrderService::class);
+  $dbHost = config('DB_HOST', '127.0.0.1');
+  ```
+* **Action Runner & An toàn ngoại lệ:**
+  ```php
+  // Chạy Action trong 1 dòng
+  $user = action(RegisterUserAction::class, $data);
+  // Triệt tiêu khối try-catch rườm rà
+  $rate = rescue(fn() => fetchExchangeRate(), fallback: 25000);
+  ```
+* **Hàng đợi & Realtime:**
+  ```php
+  dispatch(new SendWelcomeEmailJob('user@example.com', 'Kiet'));
+  broadcast('orders-channel', 'new-order', $payload);
+  ```
+
+### 5.2. Tận Dụng Triệt Để Cải Tiến PHP 8.4+
+* **Property Hooks:** Thay thế hoàn toàn getter/setter boilerplate trong Model:
+  ```php
+  public string $title {
+      get => ucfirst($this->attributes['title'] ?? '');
+      set => strtolower($value);
+  }
+  ```
+* **Asymmetric Visibility & Constructor Promotion:** Khai báo và phân quyền truy cập chỉ trong 1 dòng:
+  ```php
+  public function __construct(
+      public private(set) UserRepository $users,
+      public private(set) MailLogger $logger,
+  ) {}
+  ```
+* **Method Chaining trực tiếp sau `new`:**
+  ```php
+  $status = (new UserStatusChecker)->check($user);
+  ```
+
+### 5.3. First-Class Callable Syntax & Arrow Functions
+Khi xử lý mảng và collection, triệt tiêu closure dài dòng:
+```php
+// Ngắn gọn và thanh thoát
+$activeUsers = array_filter($users, fn($u) => $u->isActive());
+
+// First-Class Callable Syntax
+$names = array_map($userTransformer->transform(...), $users);
+```
+
+### 5.4. Fluent Interface & Method Chaining Cho Actions
+Mọi Action kế thừa từ `App\Actions\Action` đều hỗ trợ chạy nhanh qua static `run()` hoặc chain phương thức:
+```php
+// Cách 1: Chạy trực tiếp qua static run()
+$order = CreateOrderAction::run($orderData);
+
+// Cách 2: Fluent Builder Style
+Pay::user($userId)
+   ->amount(500_000)
+   ->via('VNPAY')
+   ->execute();
+```
+
+---
+
+## 6. 💻 NODEX CLI COMMANDS (`php nodex`)
 Sử dụng các lệnh CLI chuẩn hóa của NodeX Studio để quản lý và sinh code:
 ```bash
-php nodex serve                  # Khởi chạy Local Server
+php nodex serve                  # Khởi chạy Local Development Server
 php nodex migrate                # Thao tác database migrations
 php nodex migrate:rollback       # Hoàn tác migration gần nhất
 php nodex migrate:status         # Xem trạng thái migrations
@@ -83,14 +160,19 @@ php nodex make:action <Name>     # Tạo Action class mới trong app/Actions
 php nodex make:migration <Name>  # Tạo file Migration mới trong database/migrations
 php nodex make:model <Name>      # Tạo Eloquent Model trong app/Models
 php nodex make:controller <Name> # Tạo Controller trong app/Controllers
-php nodex make:rule <Name>       # Tạo Rule trong app/Rules
-php nodex queue:work             # Khởi chạy Queue Worker xử lý hàng đợi ngầm
+php nodex make:job <Name>        # Tạo Queue Job ngầm trong app/Jobs
+php nodex make:test <Name>       # Tạo Feature Test trong tests/Feature
+php nodex make:rule <Name>       # Tạo Rule kiểm tra trong app/Rules
+php nodex optimize:container     # Biên dịch Container tĩnh (0ms Reflection overhead)
+php nodex docs:api               # Tự động sinh tài liệu OpenAPI 3.0 & Swagger UI
+php nodex queue:work             # Khởi chạy Queue Worker (Exponential Backoff & Graceful Shutdown)
 php nodex realtime:serve         # Khởi chạy máy chủ WebSocket Realtime (Micro-Reverb)
-php nodex cache:clear            # Xóa cache views & app
+php nodex test                   # Chạy kiểm thử tự động toàn diện
+php nodex cache:clear            # Xóa cache views & compiled container
 php nodex route:list             # Xem danh sách routes
 ```
 
 ---
 
-## 6. 🚨 CRITICAL EXECUTION RULE
+## 7. 🚨 CRITICAL EXECUTION RULE
 - **Tập trung & Trực diện:** Khi triển khai mã nguồn, đi thẳng vào trọng tâm chức năng được yêu cầu. Không nhai lại lý thuyết dài dòng, trả về ngay lập tức các khối code chuẩn chỉnh, sạch sẽ và chạy được ngay.
