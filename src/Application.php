@@ -122,35 +122,6 @@ class Application
 
     private function handleException(Throwable $e): Response
     {
-        $debug = filter_var($_ENV['APP_DEBUG'] ?? true, FILTER_VALIDATE_BOOLEAN);
-
-        if ($debug) {
-            $html = "
-            <!DOCTYPE html>
-            <html lang='vi' class='dark'>
-            <head>
-                <meta charset='UTF-8'>
-                <title>NodeX Studio — Exception</title>
-                <script src='https://cdn.tailwindcss.com'></script>
-            </head>
-            <body class='bg-zinc-950 text-zinc-100 p-8 font-mono antialiased'>
-                <div class='max-w-4xl mx-auto space-y-4'>
-                    <div class='bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-red-400'>
-                        <div class='text-xs uppercase tracking-widest text-red-500 font-bold'>NodeX Studio Exception</div>
-                        <h1 class='text-xl font-bold mt-1'>" . htmlspecialchars($e->getMessage(), ENT_QUOTES) . "</h1>
-                        <p class='text-xs opacity-75 mt-1'>in {$e->getFile()}:{$e->getLine()}</p>
-                    </div>
-                    <div class='bg-zinc-900 border border-zinc-800 rounded-xl p-4 overflow-x-auto text-xs text-zinc-300'>
-                        <div class='font-bold text-zinc-400 mb-2'>Stack Trace:</div>
-                        <pre>" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES) . "</pre>
-                    </div>
-                </div>
-            </body>
-            </html>
-            ";
-            return new Response($html, 500, ['Content-Type' => 'text/html']);
-        }
-
-        return Response::json(['error' => 'Internal Server Error', 'code' => 500], 500);
+        return \NodeX\Exceptions\ExceptionHandler::handle($e, $this->request ?? null);
     }
 }

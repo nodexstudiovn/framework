@@ -21,7 +21,8 @@ class ViewHygieneChecker
     public static function check(string $filePath, string $rawContent): void
     {
         $lines = explode("\n", $rawContent);
-        $isLayout = str_contains(str_replace('\\', '/', $filePath), 'layouts/');
+        $normalizedPath = str_replace('\\', '/', $filePath);
+        $isLayout = str_contains($normalizedPath, 'layouts/') || str_contains($normalizedPath, 'errors/');
 
         foreach ($lines as $index => $line) {
             $lineNumber = $index + 1;
