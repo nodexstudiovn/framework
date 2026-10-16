@@ -15,6 +15,8 @@ class Vite
     private static string $devServerUrl = 'http://127.0.0.1:5173';
     private static string $manifestPath = 'public/build/manifest.json';
 
+    private static ?bool $devServerAvailable = null;
+
     public static function use(string|array $entrypoints): string
     {
         $entrypoints = (array) $entrypoints;
@@ -25,11 +27,16 @@ class Vite
 
         // Tự động kiểm tra xem Vite Dev Server (npm run dev) ở cổng 5173 có đang bật hay không
         if (!$isDev) {
-            $connection = @fsockopen('127.0.0.1', 5173, $errno, $errstr, 0.05);
-            if (is_resource($connection)) {
-                fclose($connection);
-                $isDev = true;
+            if (self::$devServerAvailable === null) {
+                $connection = @fsockopen('127.0.0.1', 5173, $errno, $errstr, 0.02);
+                if (is_resource($connection)) {
+                    fclose($connection);
+                    self::$devServerAvailable = true;
+                } else {
+                    self::$devServerAvailable = false;
+                }
             }
+            $isDev = self::$devServerAvailable;
         }
 
         if ($isDev) {

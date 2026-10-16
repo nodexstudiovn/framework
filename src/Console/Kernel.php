@@ -98,8 +98,10 @@ class Kernel
 
         echo "\033[36m⚡ NodeX Studio Development Server\033[0m\n";
         echo "Local Address: \033[32mhttp://{$host}:{$port}\033[0m\n";
+        echo "Workers: \033[32m8 concurrent workers enabled\033[0m\n";
         echo "Press Ctrl+C to stop the server.\n\n";
 
+        putenv('PHP_CLI_SERVER_WORKERS=8');
         passthru("php -S {$host}:{$port} -t public");
         return 0;
     }
