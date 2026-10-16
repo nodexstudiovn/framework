@@ -182,3 +182,27 @@ if (!function_exists('csrf_meta')) {
         return CsrfToken::meta();
     }
 }
+
+if (!function_exists('validator')) {
+    /**
+     * Khởi tạo đối tượng Validator xác thực dữ liệu
+     * Ví dụ:
+     *   $v = validator($requestData, ['email' => 'required|email']);
+     */
+    function validator(array $data = [], array $rules = [], array $messages = [], array $customAttributes = []): \Illuminate\Validation\Validator
+    {
+        return \NodeX\Validation\Validator::make($data, $rules, $messages, $customAttributes);
+    }
+}
+
+if (!function_exists('validate')) {
+    /**
+     * Xác thực dữ liệu và trả về mảng validated, ném ValidationException nếu lỗi
+     * Ví dụ:
+     *   $data = validate($input, ['title' => 'required|min:5']);
+     */
+    function validate(array $data, array $rules, array $messages = [], array $customAttributes = []): array
+    {
+        return \NodeX\Validation\Validator::validate($data, $rules, $messages, $customAttributes);
+    }
+}

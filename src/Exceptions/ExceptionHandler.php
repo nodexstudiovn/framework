@@ -25,6 +25,16 @@ class ExceptionHandler
     {
         $debug = filter_var($_ENV['APP_DEBUG'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
+        // Xử lý riêng biệt lỗi ValidationException (HTTP 422)
+        if ($e instanceof \Illuminate\Validation\ValidationException) {
+            if (self::isJsonRequest($request)) {
+                return Response::json([
+                    'message' => 'Dữ liệu cung cấp không hợp lệ.',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+        }
+
         // Ghi log ngoại lệ vào file nhật ký
         self::logException($e);
 

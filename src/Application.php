@@ -65,6 +65,16 @@ class Application
         $this->container->instance(Container::class, $this->container);
 
         Connection::init($this->basePath);
+
+        // Cấu hình Paginator Resolvers cho Eloquent ORM
+        \Illuminate\Pagination\Paginator::currentPageResolver(static function ($pageName = 'page'): int {
+            $page = $_GET[$pageName] ?? 1;
+            return filter_var($page, FILTER_VALIDATE_INT) !== false && (int)$page >= 1 ? (int)$page : 1;
+        });
+
+        \Illuminate\Pagination\Paginator::currentPathResolver(static function (): string {
+            return strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';
+        });
         
         $this->router = new Router();
         $this->container->instance(Router::class, $this->router);

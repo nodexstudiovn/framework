@@ -76,4 +76,12 @@ class Request
         $contentType = $this->headers['Content-Type'] ?? $this->headers['content-type'] ?? '';
         return str_contains((string)$contentType, 'application/json');
     }
+
+    /**
+     * Xác thực dữ liệu đầu vào của Request với các rules chuẩn hóa
+     */
+    public function validate(array $rules, array $messages = [], array $customAttributes = []): array
+    {
+        return \NodeX\Validation\Validator::validate($this->all(), $rules, $messages, $customAttributes);
+    }
 }

@@ -15,6 +15,9 @@
         "illuminate/database": "^13.35",
         "illuminate/events": "^13.35",
         "illuminate/filesystem": "^13.35",
+        "illuminate/pagination": "^13.35",
+        "illuminate/translation": "^13.35",
+        "illuminate/validation": "^13.35",
         "illuminate/view": "^13.35"
     },
     "autoload": {
